@@ -1,0 +1,31 @@
+{
+  "name": "roblox-whitelist-vercel",
+  "version": "3.0.0",
+  "description": "Roblox Whitelist Backend Server for Vercel",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build completed'",
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "roblox",
+    "whitelist",
+    "backend",
+    "vercel",
+    "serverless"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
