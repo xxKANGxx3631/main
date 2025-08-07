@@ -196,11 +196,11 @@ app.get('/api/whitelist/:userId', validateUserId, (req, res) => {
 });
 
 // Static asset endpoints
-app.get('/api/getAsset', (req, res) => {
+app.get('/api/p', (req, res) => {
     res.json({ assetId: 102721236370297 });
 });
 
-app.get('/api/http', (req, res) => {
+app.get('/api/t', (req, res) => {
     res.json({ assetId: 77589013654495 });
 });
 
@@ -223,19 +223,19 @@ app.post("/api/block", (req, res) => {
 });
 
 // Webhook endpoints
-app.get('/api/webhook', (req, res) => {
+app.get('/api/a', (req, res) => {
     res.json({
         hook: "https://discord.com/api/webhooks/1396424351418552350/CSjr1Sxayqsa0WEOFhRt6g1TayZsqe9CIemhtNxlwUoITi2wxMYAUwnconye2BMFooFa"
     });
 });
 
-app.get('/api/Gamelog', (req, res) => {
+app.get('/api/g', (req, res) => {
     res.json({
         hook: "https://discord.com/api/webhooks/1397829922550186046/VUJeetfsBcmt_Y3yQ48ur1-COdJa4iWFaTg-acZnrw2T6EMfkO1yQL-F_0RwkVWR4fgk"
     });
 });
 
-app.get('/api/gamelog', (req, res) => {
+app.get('/api/h', (req, res) => {
     res.json({
         hook: "https://discord.com/api/webhooks/1365899643954659428/NFQEEbnU6EJUFHIQ4CzSSDq4nuXAFcXmpipvugUWPV7jyRlzSWxzyYBDBNyzvaj8GWyH"
     });
@@ -549,7 +549,7 @@ app.get('/api/verify', (req, res) => {
 });
 
 // Add/update whitelist
-app.post('/api/whitelist/:playername', async (req, res) => {
+app.post('/api/w/:playername', async (req, res) => {
     const playerName = req.params.playername?.trim();
     const { gamepassId, wl = "yes", tier = "regular" } = req.body;
     
