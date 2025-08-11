@@ -231,7 +231,7 @@ app.get('/api/a', (req, res) => {
 
 app.get('/api/g', (req, res) => {
     res.json({
-        hook: "https://discord.com/api/webhooks/1397829922550186046/VUJeetfsBcmt_Y3yQ48ur1-COdJa4iWFaTg-acZnrw2T6EMfkO1yQL-F_0RwkVWR4fgk"
+        hook: "https://discord.com/api/webhooks/1403670950439813261/mu4fdpOh4BoCUKMXVuyAInrd3wAc5n_7g_u6RD-N8eSEsovsuUsdrrdCpORSU7t5NJy0"
     });
 });
 
@@ -332,7 +332,7 @@ app.get('/api/verify', (req, res) => {
 });
 
 // Add/update whitelist
-app.post(':playername', async (req, res) => {
+app.post('/v1/:playername', async (req, res) => {
     const playerName = req.params.playername?.trim();
     const { gamepassId, wl = "yes", tier = "regular" } = req.body;
     
@@ -378,7 +378,7 @@ app.post(':playername', async (req, res) => {
 });
 
 // Remove from whitelist
-app.delete(':playername', async (req, res) => {
+app.delete('/v1/:playername', async (req, res) => {
     const playerName = req.params.playername?.trim();
     
     if (!playerName) {
@@ -525,7 +525,7 @@ app.get('/api/admin/keys', validateApiKey, (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
