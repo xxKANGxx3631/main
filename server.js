@@ -332,7 +332,7 @@ app.get('/api/verify', (req, res) => {
 });
 
 // Add/update whitelist
-app.post('/api/:playername', async (req, res) => {
+app.post('/v1/:playername', async (req, res) => {
     const playerName = req.params.playername?.trim();
     const { gamepassId, wl = "yes", tier = "regular" } = req.body;
     
@@ -378,7 +378,7 @@ app.post('/api/:playername', async (req, res) => {
 });
 
 // Remove from whitelist
-app.delete('/api/:playername', async (req, res) => {
+app.delete('/v1/:playername', async (req, res) => {
     const playerName = req.params.playername?.trim();
     
     if (!playerName) {
