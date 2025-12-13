@@ -225,19 +225,19 @@ app.post("/api/block", (req, res) => {
 // Webhook endpoints
 app.get('/api/a', (req, res) => {
     res.json({
-        hook: "https://discord.com/api/webhooks/1396424351418552350/CSjr1Sxayqsa0WEOFhRt6g1TayZsqe9CIemhtNxlwUoITi2wxMYAUwnconye2BMFooFa"
+        hook: "https://discord.com/api/webhooks/1447049446557876436/O3r1MBehqyZ0gif__mAb12QZ9kiMC7EG6uDTKL8I6ytWG-Q5WT-HoOjpX5Yz09MgBEs_"
     });
 });
 
 app.get('/api/g', (req, res) => {
     res.json({
-        hook: "https://discord.com/api/webhooks/1403670950439813261/mu4fdpOh4BoCUKMXVuyAInrd3wAc5n_7g_u6RD-N8eSEsovsuUsdrrdCpORSU7t5NJy0"
+        hook: "https://discord.com/api/webhooks/1447049446557876436/O3r1MBehqyZ0gif__mAb12QZ9kiMC7EG6uDTKL8I6ytWG-Q5WT-HoOjpX5Yz09MgBEs_"
     });
 });
 
 app.get('/api/h', (req, res) => {
     res.json({
-        hook: "https://discord.com/api/webhooks/1365899643954659428/NFQEEbnU6EJUFHIQ4CzSSDq4nuXAFcXmpipvugUWPV7jyRlzSWxzyYBDBNyzvaj8GWyH"
+        hook: "https://discord.com/api/webhooks/1447049446557876436/O3r1MBehqyZ0gif__mAb12QZ9kiMC7EG6uDTKL8I6ytWG-Q5WT-HoOjpX5Yz09MgBEs_"
     });
 });
 
