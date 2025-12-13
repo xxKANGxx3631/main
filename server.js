@@ -197,7 +197,7 @@ app.get('/api/whitelist/:userId', validateUserId, (req, res) => {
 
 // Static asset endpoints
 app.get('/api/p', (req, res) => {
-    res.json({ assetId: 102721236370297 });
+    res.json({ assetId: 125300653766343 });
 });
 
 app.get('/api/t', (req, res) => {
