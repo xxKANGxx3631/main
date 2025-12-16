@@ -224,7 +224,7 @@ app.post('/api/webhook/send', requireAuth, async (req, res) => {
 // ============= 애셋 API =============
 
 app.get('/api/asset/p', (req, res) => {
-    res.json({ assetId: 125300653766343 });
+    res.json({ assetId: 108057164912977 });
 });
 
 app.get('/api/asset/t', (req, res) => {
