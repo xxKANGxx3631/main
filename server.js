@@ -57,24 +57,38 @@ const getUserId = async (username) => {
 // ============= 화이트리스트 API =============
 
 // 화이트리스트 확인
-app.get('/api/whitelist/:userId', (req, res) => {
-    const { userId } = req.params;
-    
-    const user = whitelist[userId];
-    if (user) {
-        res.json({
-            wl: user.wl,
-            tier: user.tier,
-            username: user.username
-        });
-    } else {
-        res.json({
+app.get('/api/whitelist/:userId', async (req, res) => {
+    const userId = Number(req.params.userId)
+
+    if (Number.isNaN(userId)) {
+        return res.json({
             wl: 'no',
             tier: null,
             username: null
-        });
+        })
     }
-});
+
+    const { data, error } = await supabase
+        .from('whitelist')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+    if (error || !data) {
+        return res.json({
+            wl: 'no',
+            tier: null,
+            username: null
+        })
+    }
+
+    res.json({
+        wl: 'yes',
+        tier: data.tier,
+        username: data.username
+    })
+})
+
 
 // 화이트리스트 추가 (유저네임)
 app.post('/api/whitelist', async (req, res) => {
