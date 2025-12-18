@@ -1,22 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 
 // CORS 설정
 app.use(cors({
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+    origin: '*',  // 모든 origin 허용 (로블록스 포함)
+    credentials: false,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'User-Agent']
 }));
 
-app.use(express.json());
+// OPTIONS preflight 요청 처리
+app.options('*', cors());
 
-// 인메모리 저장소
-let whitelist = {};
-let gameBlacklist = {};
+app.use(express.json());
 
 // API 키 검증
 const API_SECRET = process.env.API_SECRET || 'dnpqgnrrkdxorud3631A!';
@@ -58,37 +58,34 @@ const getUserId = async (username) => {
 
 // 화이트리스트 확인
 app.get('/api/whitelist/:userId', async (req, res) => {
-    const userId = Number(req.params.userId)
-
-    if (Number.isNaN(userId)) {
-        return res.json({
-            wl: 'no',
-            tier: null,
-            username: null
-        })
+    const { userId } = req.params;
+    
+    // CORS 헤더 명시적 추가
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Content-Type', 'application/json');
+    
+    try {
+        const user = await kv.hgetall(`whitelist:${userId}`);
+        
+        if (user && Object.keys(user).length > 0) {
+            res.json({
+                wl: user.wl || 'no',
+                tier: user.tier || null,
+                username: user.username || null
+            });
+        } else {
+            res.json({
+                wl: 'no',
+                tier: null,
+                username: null
+            });
+        }
+    } catch (error) {
+        console.error('KV error:', error);
+        res.status(500).json({ error: 'Database error' });
     }
-
-    const { data, error } = await supabase
-        .from('whitelist')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-    if (error || !data) {
-        return res.json({
-            wl: 'no',
-            tier: null,
-            username: null
-        })
-    }
-
-    res.json({
-        wl: 'yes',
-        tier: data.tier,
-        username: data.username
-    })
-})
-
+});
 
 // 화이트리스트 추가 (유저네임)
 app.post('/api/whitelist', async (req, res) => {
@@ -104,17 +101,21 @@ app.post('/api/whitelist', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
         
-        whitelist[userId] = {
+        await kv.hset(`whitelist:${userId}`, {
             username: username,
             wl: 'yes',
             tier: tier,
             addedAt: new Date().toISOString()
-        };
+        });
         
         res.json({
             success: true,
             userId: userId,
-            data: whitelist[userId]
+            data: {
+                username: username,
+                wl: 'yes',
+                tier: tier
+            }
         });
     } catch (error) {
         console.error('Add whitelist error:', error);
@@ -136,8 +137,9 @@ app.delete('/api/whitelist', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
         
-        if (whitelist[userId]) {
-            delete whitelist[userId];
+        const exists = await kv.exists(`whitelist:${userId}`);
+        if (exists) {
+            await kv.del(`whitelist:${userId}`);
             res.json({ success: true, message: 'Removed from whitelist' });
         } else {
             res.status(404).json({ error: 'Not in whitelist' });
@@ -149,49 +151,88 @@ app.delete('/api/whitelist', async (req, res) => {
 });
 
 // 전체 화이트리스트 조회 (관리자)
-app.get('/api/admin/whitelist', requireAuth, (req, res) => {
-    res.json({
-        count: Object.keys(whitelist).length,
-        data: whitelist
-    });
+app.get('/api/admin/whitelist', requireAuth, async (req, res) => {
+    try {
+        const keys = await kv.keys('whitelist:*');
+        const whitelist = {};
+        
+        for (const key of keys) {
+            const userId = key.replace('whitelist:', '');
+            whitelist[userId] = await kv.hgetall(key);
+        }
+        
+        res.json({
+            count: keys.length,
+            data: whitelist
+        });
+    } catch (error) {
+        console.error('Get whitelist error:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
 });
 
 // ============= 게임 블랙리스트 API =============
 
 // 게임 블랙리스트 확인
-app.get('/api/game/:placeId', (req, res) => {
+app.get('/api/game/:placeId', async (req, res) => {
     const { placeId } = req.params;
     
-    const game = gameBlacklist[placeId];
-    res.json({
-        blacklisted: game?.blacklisted || 'no',
-        reason: game?.reason || null
-    });
+    try {
+        const game = await kv.hgetall(`game:${placeId}`);
+        
+        res.json({
+            blacklisted: game?.blacklisted || 'no',
+            reason: game?.reason || null
+        });
+    } catch (error) {
+        console.error('Get game error:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
 });
 
 // 게임 블랙리스트 추가/수정 (관리자)
-app.post('/api/game/:placeId', requireAuth, (req, res) => {
+app.post('/api/game/:placeId', requireAuth, async (req, res) => {
     const { placeId } = req.params;
     const { blacklisted = 'yes', reason } = req.body;
     
-    gameBlacklist[placeId] = {
-        blacklisted: blacklisted,
-        reason: reason || null,
-        updatedAt: new Date().toISOString()
-    };
-    
-    res.json({
-        success: true,
-        data: gameBlacklist[placeId]
-    });
+    try {
+        await kv.hset(`game:${placeId}`, {
+            blacklisted: blacklisted,
+            reason: reason || null,
+            updatedAt: new Date().toISOString()
+        });
+        
+        const game = await kv.hgetall(`game:${placeId}`);
+        
+        res.json({
+            success: true,
+            data: game
+        });
+    } catch (error) {
+        console.error('Update game error:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
 });
 
 // 전체 블랙리스트 조회 (관리자)
-app.get('/api/admin/games', requireAuth, (req, res) => {
-    res.json({
-        count: Object.keys(gameBlacklist).length,
-        data: gameBlacklist
-    });
+app.get('/api/admin/games', requireAuth, async (req, res) => {
+    try {
+        const keys = await kv.keys('game:*');
+        const games = {};
+        
+        for (const key of keys) {
+            const placeId = key.replace('game:', '');
+            games[placeId] = await kv.hgetall(key);
+        }
+        
+        res.json({
+            count: keys.length,
+            data: games
+        });
+    } catch (error) {
+        console.error('Get games error:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
 });
 
 // ============= 웹훅 API =============
@@ -238,7 +279,7 @@ app.post('/api/webhook/send', requireAuth, async (req, res) => {
 // ============= 애셋 API =============
 
 app.get('/api/asset/p', (req, res) => {
-    res.json({ assetId: 108057164912977 });
+    res.json({ assetId: 125300653766343 });
 });
 
 app.get('/api/asset/t', (req, res) => {
